@@ -1,9 +1,11 @@
 import math
 
+
 def __CheckEvaluationInput(y, yPredicted):
     # Check sizes
     if(len(y) != len(yPredicted)):
-        raise UserWarning("Attempting to evaluate between the true labels and predictions.\n   Arrays contained different numbers of samples. Check your work and try again.")
+        raise UserWarning(
+            "Attempting to evaluate between the true labels and predictions.\n   Arrays contained different numbers of samples. Check your work and try again.")
 
     # Check values
     valueError = False
@@ -15,15 +17,24 @@ def __CheckEvaluationInput(y, yPredicted):
             valueError = True
 
     if valueError:
-        raise UserWarning("Attempting to evaluate between the true labels and predictions.\n   Arrays contained unexpected values. Must be between 0 and 1.")
+        raise UserWarning(
+            "Attempting to evaluate between the true labels and predictions.\n   Arrays contained unexpected values. Must be between 0 and 1.")
+
 
 def MeanSquaredErrorLoss(y, yPredicted):
     __CheckEvaluationInput(y, yPredicted)
 
     print("Stub MeanSquaredErrorLoss in ", __file__)
 
+
 def LogLoss(y, yPredicted):
     __CheckEvaluationInput(y, yPredicted)
+    sum = 0
+    for i in range(len(y)):
+        sum += IndividualLogLoss(y[i], yPredicted[i])
 
-    print("Stub LogLoss in ", __file__)
+    return sum/len(y)
 
+
+def IndividualLogLoss(y, yPredicted):
+    return -y * math.log(yPredicted) - ((1-y)*math.log(1-yPredicted))

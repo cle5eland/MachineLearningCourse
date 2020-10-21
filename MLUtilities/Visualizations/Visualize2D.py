@@ -1,25 +1,27 @@
 import PIL
 from PIL import Image
 
-kDarkRed = (.65,.55,.55)
-kDarkGreen = (.55,.65,.55)
-kBrightRed = (.99,0,0)
-kBrightGreen = (0,.99,0)
+kDarkRed = (.65, .55, .55)
+kDarkGreen = (.55, .65, .55)
+kBrightRed = (.99, 0, 0)
+kBrightGreen = (0, .99, 0)
+
 
 class Visualize2D(object):
     def __init__(self, directory, name, size=400):
-        self.outputPath = "%s\\%s.png" % (directory,name)
-        self.image = Image.new("RGB", (size,size), "White")
+        self.outputPath = "%s/%s.png" % (directory, name)
+        self.image = Image.new("RGB", (size, size), "White")
         self.pixels = self.image.load()
         self.size = size
 
     def Plot2DPoints(self, x, y, RGBFloat, pointSize=5, weights=None, labelMask=None):
         if weights == None:
             weights = [1 for i in range(len(x))]
-        
+
         for i in range(len(x)):
             if labelMask == None or y[i] in labelMask:
-                color = (int(255 * RGBFloat[0] * weights[i]), int(255 * RGBFloat[1] * weights[i]), int(255 * RGBFloat[2] * weights[i]))
+                color = (int(255 * RGBFloat[0] * weights[i]), int(
+                    255 * RGBFloat[1] * weights[i]), int(255 * RGBFloat[2] * weights[i]))
 
                 xCoordinate = x[i][0] * self.size
                 yCoordinate = x[i][1] * self.size
@@ -29,10 +31,11 @@ class Visualize2D(object):
 
                 if yCoordinate + pointSize >= self.size:
                     yCoordinate = yCoordinate - pointSize
-                    
+
                 for xOffset in range(pointSize):
                     for yOffset in range(pointSize):
-                        self.pixels[xCoordinate + xOffset, yCoordinate + yOffset] = color
+                        self.pixels[xCoordinate + xOffset,
+                                    yCoordinate + yOffset] = color
 
     def PlotBinaryConcept(self, model, colorTrue=kDarkGreen, colorFalse=kDarkRed):
         points = []
@@ -43,8 +46,10 @@ class Visualize2D(object):
 
         predicted = model.predict(points)
 
-        self.Plot2DPoints(points, predicted, colorFalse, pointSize=1, weights = [1 for i in predicted], labelMask = [0])
-        self.Plot2DPoints(points, predicted, colorTrue, pointSize=1, weights =  [1 for i in predicted], labelMask = [1])
+        self.Plot2DPoints(points, predicted, colorFalse, pointSize=1, weights=[
+                          1 for i in predicted], labelMask=[0])
+        self.Plot2DPoints(points, predicted, colorTrue, pointSize=1, weights=[
+                          1 for i in predicted], labelMask=[1])
 
     def Plot2DDataAndBinaryConcept(self, x, y, model):
         self.PlotBinaryConcept(model)
