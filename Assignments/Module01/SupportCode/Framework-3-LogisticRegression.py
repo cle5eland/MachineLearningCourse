@@ -1,5 +1,5 @@
 
-kOutputDirectory = "."
+kOutputDirectory = ""
 
 runUnitTest = False
 if runUnitTest:
@@ -33,6 +33,21 @@ if runUnitTest:
         visualization.Plot2DDataAndBinaryConcept(xTrain, yTrain, model)
         visualization.Save()
 
+
+def simpleModel(xRaw):
+    return list(map(evalSampleSimple, xRaw))
+
+
+def evalSampleSimple(x):
+    if ("Call" in x and "FREE" in x):
+        return 1
+    if ("mobile" in x and "claim" in x):
+        return 1
+    if ("&" in x and "Call" in x):
+        return 1
+    return 0
+
+
 # Once your LogisticRegression learner seems to be working, set this flag to True and try it on the spam data
 runSMSSpam = False
 if runSMSSpam:
@@ -48,9 +63,10 @@ if runSMSSpam:
      yTest) = Sample.TrainValidateTestSplit(xRaw, yRaw, percentValidate=.1, percentTest=.1)
 
     import MachineLearningCourse.Assignments.Module01.SupportCode.SMSSpamFeaturize as SMSSpamFeaturize
-    featurizer = SMSSpamFeaturize.SMSSpamFeaturize(useHandCraftedFeatures=True)
+    featurizer = SMSSpamFeaturize.SMSSpamFeaturize(
+        useHandCraftedFeatures=False)
     featurizer.CreateVocabulary(
-        xTrainRaw, yTrain, supplementalVocabularyWords=['call', 'to', 'your'])
+        xTrainRaw, yTrain, numMutualInformationWords=10)
 
     xTrain = featurizer.Featurize(xTrainRaw)
     xValidate = featurizer.Featurize(xValidateRaw)
@@ -64,17 +80,32 @@ if runSMSSpam:
     logisticRegressionModel = LogisticRegression.LogisticRegression()
 
     logisticRegressionModel.fit(
-        xTrain, yTrain, stepSize=1.0, convergence=0.0000001)
+        xTrain, yTrain, stepSize=1.0, convergence=0.001)
 
     #############################
     # Evaluate the model
 
     import MachineLearningCourse.MLUtilities.Evaluations.EvaluateBinaryClassification as EvaluateBinaryClassification
 
+    from tabulate import tabulate
+
+    table = []
+    for i in range(len(logisticRegressionModel.weights)):
+        table.append([featurizer.vocabulary[i],
+                      logisticRegressionModel.weights[i]])
+
+    headers = ["words", "weights"]
+
+    print(tabulate(table, headers, tablefmt="github"))
+
     print("\nLogistic regression model:")
     logisticRegressionModel.visualize()
     EvaluateBinaryClassification.ExecuteAll(
         yValidate, logisticRegressionModel.predict(xValidate, classificationThreshold=0.5))
+
+    print("Simple model:")
+    EvaluateBinaryClassification.ExecuteAll(
+        yValidate, simpleModel(xValidateRaw))
 
 runVisual = True
 if runVisual:
@@ -88,46 +119,40 @@ if runVisual:
     import MachineLearningCourse.MLUtilities.Data.Sample as Sample
     (xTrainRaw, yTrain, xValidateRaw, yValidate, xTestRaw,
      yTest) = Sample.TrainValidateTestSplit(xRaw, yRaw, percentValidate=.1, percentTest=.1)
-
     import MachineLearningCourse.Assignments.Module01.SupportCode.SMSSpamFeaturize as SMSSpamFeaturize
-    featurizer = SMSSpamFeaturize.SMSSpamFeaturize(useHandCraftedFeatures=True)
-    featurizer.CreateVocabulary(
-        xTrainRaw, yTrain, supplementalVocabularyWords=['call', 'to', 'your'])
-
-    xTrain = featurizer.Featurize(xTrainRaw)
-    xValidate = featurizer.Featurize(xValidateRaw)
-    xTest = featurizer.Featurize(xTestRaw)
-
-    #################
-    # You may find the following module helpful for making charts. You'll have to install matplotlib (see the lecture notes).
-    #
     import MachineLearningCourse.MLUtilities.Visualizations.Charting as Charting
     import MachineLearningCourse.MLUtilities.Learners.LogisticRegression as LogisticRegression
-
-    #
-    # # trainLosses, validationLosses, and lossXLabels are parallel arrays with the losses you want to plot at the specified x coordinates
-    #
-    model = LogisticRegression.LogisticRegression(featureCount=len(xTrain[0]))
-
-    lossXLabels = []
     trainLosses = []
     validationLosses = []
-    while not model.converged:
-        # do 10 iterations of training
-        model.incrementalFit(xTrain, yTrain, maxSteps=100,
-                             stepSize=1.0, convergence=0.000001)
+    numFeaturesSweep = [1, 10, 20, 30, 40, 50]
+    for numFeatures in numFeaturesSweep:
+        featurizer = SMSSpamFeaturize.SMSSpamFeaturize(
+            useHandCraftedFeatures=False)
+        featurizer.CreateVocabulary(
+            xTrainRaw, yTrain, numMutualInformationWords=numFeatures)
 
+        xTrain = featurizer.Featurize(xTrainRaw)
+        xValidate = featurizer.Featurize(xValidateRaw)
+        xTest = featurizer.Featurize(xTestRaw)
+        #################
+        # You may find the following module helpful for making charts. You'll have to install matplotlib (see the lecture notes).
+        #
+
+        #
+        # # trainLosses, validationLosses, and lossXLabels are parallel arrays with the losses you want to plot at the specified x coordinates
+        #
+
+        print("Learning the logistic regression model:")
+        model = LogisticRegression.LogisticRegression()
+
+        model.fit(
+            xTrain, yTrain, stepSize=1.0, convergence=0.001)
         # then look at the models weights
         model.visualize()
-        lossXLabels.append(model.totalGradientDescentSteps)
         trainLosses.append(
             model.loss(xTrain, yTrain))
         validationLosses.append(
             model.loss(xValidate, yValidate))
 
-        # then look at how training set loss is converging
-        print(" fit for %d iterations, train set loss is %.4f" %
-              (model.totalGradientDescentSteps, model.loss(xTrain, yTrain)))
-
-    Charting.PlotSeries([trainLosses, validationLosses], ['Train', 'Validate'], lossXLabels, chartTitle="Logistic Regression",
-                        xAxisTitle="Gradient Descent Steps", yAxisTitle="Avg. Loss", outputDirectory=kOutputDirectory, fileName="3-Logistic Regression Train vs Validate loss")
+    Charting.PlotSeries([trainLosses, validationLosses], ['Train', 'Validate'], numFeaturesSweep, chartTitle="Logistic Regression -- Number of MI Features",
+                        xAxisTitle="Number of Features", yAxisTitle="Avg. Loss", outputDirectory=kOutputDirectory, fileName="MIModelLossAssignment4")

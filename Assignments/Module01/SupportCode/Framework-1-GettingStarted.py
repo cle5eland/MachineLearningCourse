@@ -59,9 +59,15 @@ for i in range(5):
 trainSetAccuracy = EvaluateBinaryClassification.Accuracy(
     yTrain, yTrainPredicted)
 
+validateSetAccuracy = EvaluateBinaryClassification.Accuracy(
+    yValidate, yValidatePredicted)
+
 print("\n---")
-print("Predicting the most common class gives: %.2f accuracy on the training set." %
+print("Predicting the most common class gives: %.3f accuracy on the training set." %
       (trainSetAccuracy))
+
+print("Predicting the most common class gives: %.3f accuracy on the validation set." %
+      (validateSetAccuracy))
 
 print("\n---")
 print("Fancy Accuracy: \n")
