@@ -94,7 +94,6 @@ class SMSSpamFeaturize(object):
 
         topMIWords = self.FindTopWordsByMutualInformation(
             xTrainRaw, yTrainRaw, numMutualInformationWords)
-        print('Top MI Words', topMIWords)
         # For now, only use words that are passed in
         self.vocabulary = self.vocabulary + \
             supplementalVocabularyWords + mostFrequentWords + topMIWords

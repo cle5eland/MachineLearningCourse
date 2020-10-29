@@ -31,7 +31,7 @@ def __CompleteChart(fig, ax, outputDirectory=None, fileName=None, yTopLimit=None
    ax.legend()
       
    if outputDirectory != None:
-      filePath = "%s" % (fileName)
+      filePath = "%s/%s" % (outputDirectory, fileName)
       fig.savefig(filePath)
 
    else:

@@ -1,5 +1,10 @@
-from tabulate import tabulate
 
+
+from tabulate import tabulate
+totalFeatures = 50
+numMIs = [x * 5
+          for x in range(int(totalFeatures/5) + 1)]
+print(numMIs)
 table = [[0.01, 8, 0.841], [0.001, 57, 0.867],
          [0.0001, 186, 0.923], [0.00001, 522, 0.927]]
 headers = ["convergence", "steps", "accuracy"]
