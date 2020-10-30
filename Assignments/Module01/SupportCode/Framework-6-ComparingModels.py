@@ -1,3 +1,4 @@
+import MachineLearningCourse.MLUtilities.Data.CrossValidation as CrossValidation
 import MachineLearningCourse.MLUtilities.Evaluations.EvaluateBinaryClassification as EvaluateBinaryClassification
 import MachineLearningCourse.MLUtilities.Learners.MostCommonClassModel as MostCommonClassModel
 import MachineLearningCourse.MLUtilities.Learners.LogisticRegression as LogisticRegression
@@ -79,8 +80,8 @@ doCrossValidation = True
 """
 doCrossValidation = True
 
+
 if doCrossValidation:
-    import MachineLearningCourse.MLUtilities.Data.CrossValidation as CrossValidation
     numberOfFolds = 5
 
     stepSize = 1.0
@@ -93,6 +94,11 @@ if doCrossValidation:
     yTrain.extend(yValidate)
     yTrainAggregate = yTrain
 
+    logAccuracy = CrossValidation.Execute(
+        5, xTrainRaw, yTrain, 25, 0, convergence, stepSize)
+    import MachineLearningCourse.MLUtilities.Evaluations.ErrorBounds as ErrorBounds
+
+    """
     import MachineLearningCourse.MLUtilities.Evaluations.ErrorBounds as ErrorBounds
 
     totalCorrectLogistic = 0
@@ -119,10 +125,10 @@ if doCrossValidation:
                                              logisticModel.predict(xEvaluate))
         totalCorrectCommon += countCorrect(yEvaluate,
                                            commonModel.predict(xEvaluate))
-
+    """
     # Calculate total accuracy
-    logAccuracy = totalCorrectLogistic/len(xTrainAggregate)
-    commonAccuracy = totalCorrectCommon/len(xTrainAggregate)
+    #logAccuracy = totalCorrectLogistic/len(xTrainAggregate)
+    #commonAccuracy = totalCorrectCommon/len(xTrainAggregate)
 
     # Output accuracy and bounds for two-sided intervals
     print("Validation set accuracy Logistic: %.4f." %
@@ -132,10 +138,11 @@ if doCrossValidation:
             logAccuracy, len(xTrainAggregate), confidence)
         print(" %.2f%% accuracy bound: %.4f - %.4f" %
               (confidence, lowerBound, upperBound))
+        """
     print("Validation set accuracy Common: %.4f." %
-          (commonAccuracy))
+            (commonAccuracy))
     for confidence in [.5, .8, .9, .95, .99]:
         (lowerBound, upperBound) = ErrorBounds.GetAccuracyBounds(
             commonAccuracy, len(xTrainAggregate), confidence)
         print(" %.2f%% accuracy bound: %.4f - %.4f" %
-              (confidence, lowerBound, upperBound))
+                (confidence, lowerBound, upperBound))"""

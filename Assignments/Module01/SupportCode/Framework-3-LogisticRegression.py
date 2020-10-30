@@ -49,7 +49,7 @@ def evalSampleSimple(x):
 
 
 # Once your LogisticRegression learner seems to be working, set this flag to True and try it on the spam data
-runSMSSpam = False
+runSMSSpam = True
 if runSMSSpam:
     import MachineLearningCourse.MLProjectSupport.SMSSpam.SMSSpamDataset as SMSSpamDataset
 
@@ -80,7 +80,7 @@ if runSMSSpam:
     logisticRegressionModel = LogisticRegression.LogisticRegression()
 
     logisticRegressionModel.fit(
-        xTrain, yTrain, stepSize=1.0, convergence=0.001)
+        xTrain, yTrain, stepSize=1.0, convergence=0.005)
 
     #############################
     # Evaluate the model
@@ -107,7 +107,7 @@ if runSMSSpam:
     EvaluateBinaryClassification.ExecuteAll(
         yValidate, simpleModel(xValidateRaw))
 
-runVisual = True
+runVisual = False
 if runVisual:
     import MachineLearningCourse.MLProjectSupport.SMSSpam.SMSSpamDataset as SMSSpamDataset
 

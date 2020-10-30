@@ -36,5 +36,8 @@ def LogLoss(y, yPredicted):
     return sum/len(y)
 
 
+smallValue = 0  # 1e-15
+
+
 def IndividualLogLoss(y, yPredicted):
-    return -y * math.log(yPredicted) - ((1-y)*math.log(1-yPredicted))
+    return -y * math.log(yPredicted + smallValue) - ((1-y)*math.log(1-yPredicted + smallValue))
