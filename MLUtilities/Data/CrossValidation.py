@@ -4,6 +4,7 @@ import MachineLearningCourse.MLUtilities.Learners.LogisticRegression as Logistic
 import MachineLearningCourse.Assignments.Module01.SupportCode.SMSSpamFeaturize as SMSSpamFeaturize
 import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.SMSSpam.SMSSpamDataset as SMSSpamDataset
+from typing import Callable
 
 
 def __countCorrect(y, yPredicted):
@@ -55,27 +56,37 @@ def CrossValidation(x, y, numberOfFolds, foldIDToSelect):
     return(xTrain, yTrain, xEvaluate, yEvaluate)
 
 
-def Execute(numberOfFolds: int, xTrainAggregate: [], yTrainAggregate: [], numMutualInformationWords: int, numFrequentWords: int, convergence: float, stepSize: float):
+def NewExecute(numberOfFolds: int, xTrain: [], yTrain: [], modelType, modelParams: dict, featurizerParams: dict, featurizerType, featureCreateMethod: str):
     totalCorrect = 0
     for i in range(numberOfFolds):
         # Get data for fold
         (xTrainFold, yTrainFold, xEvaluate, yEvaluate) = CrossValidation(
-            xTrainAggregate, yTrainAggregate, numberOfFolds, i)
+            xTrain, yTrain, numberOfFolds, i)
         # Feature Engineering
-        featurizer = SMSSpamFeaturize.SMSSpamFeaturize()
-        featurizer.CreateVocabulary(
-            xTrainFold, yTrainFold, numMutualInformationWords=numMutualInformationWords, numFrequentWords=numFrequentWords)
+        featurizer = featurizerType()
+        createFeatures = getattr(featurizer, featureCreateMethod)
+        createFeatures(xTrain, yTrain, **featurizerParams)
+
         xTrainFold = featurizer.Featurize(xTrainFold)
         xEvaluate = featurizer.Featurize(xEvaluate)
-        logisticModel = LogisticRegression.LogisticRegression()
         # Fit models
-        logisticModel.fit(xTrainFold, yTrainFold, convergence=convergence,
-                          stepSize=stepSize, verbose=True)
+        model = modelType()
+        model.fit(xTrainFold, yTrainFold, **modelParams)
 
         # Count accurate predictions
         totalCorrect += __countCorrect(yEvaluate,
-                                       logisticModel.predict(xEvaluate))
+                                       model.predict(xEvaluate))
 
     # Calculate total accuracy
-    logAccuracy = totalCorrect/len(xTrainAggregate)
+    logAccuracy = totalCorrect/len(xTrain)
     return logAccuracy
+
+
+def Execute(numberOfFolds: int, xTrain: [], yTrain: [], numMutualInformationWords: int, numFrequentWords: int, convergence: float, stepSize: float):
+    modelParams = {}
+    featureParams = {}
+    featureParams['numMutualInformationWords'] = numMutualInformationWords
+    modelParams['stepSize'] = stepSize
+    modelParams['convergence'] = convergence
+    featureParams['numFrequentWords'] = numFrequentWords
+    return NewExecute(numberOfFolds, xTrain, yTrain, LogisticRegression.LogisticRegression, modelParams, featureParams, SMSSpamFeaturize.SMSSpamFeaturize, 'CreateVocabulary')

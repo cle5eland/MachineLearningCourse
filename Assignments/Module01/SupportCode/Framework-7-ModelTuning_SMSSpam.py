@@ -79,11 +79,11 @@ best = [
     ["numFrequentWords", 20, 5, 0.0001, 100],
     ["numMutualInformationWords", 75, 5, 0.0001, 100],
     ["convergence", 75, 5, 0.00001, 100],
-    ["stepSize", 75, 8, 0.00001, 100]
+    ["stepSize", 75, 8, 0.00001, 100],
     ["numFrequentWords", 75, 8, 0.00001, 100]
 ]
 
-
+"""
 def makeRunSpec(input):
     runSpecification = {}
     runSpecification['optimizing'] = input[0]
@@ -95,7 +95,6 @@ def makeRunSpec(input):
 
 evaluationRunSpecifications = list(map(makeRunSpec, best))
 
-"""
 evaluationRunSpecifications = []
 paramValues = [125, 150, 200, 250]
 for numMutualInformationWords in paramValues:
@@ -136,22 +135,22 @@ for convergence in paramValues:
 
     evaluationRunSpecifications.append(runSpecification)
 
-
+"""
 evaluationRunSpecifications = []
-paramValues = [1.0, 5.0, 8.0, 10.0, 15.0]
+paramValues = [1.0]
 # paramValues = [1]
 # Step Size = 5
 for stepSize in paramValues:
 
     runSpecification = {}
     runSpecification['optimizing'] = 'stepSize'
-    runSpecification['numMutualInformationWords'] = 75
+    runSpecification['numMutualInformationWords'] = 20
     runSpecification['stepSize'] = stepSize
-    runSpecification['convergence'] = 0.00001
-    runSpecification['numFrequentWords'] = 100
+    runSpecification['convergence'] = 0.0001
+    runSpecification['numFrequentWords'] = 5
 
     evaluationRunSpecifications.append(runSpecification)
-"""
+
 
 # if you want to run in parallel you need to install joblib as described in the lecture notes and adjust the comments on the next three lines...
 evaluations = Parallel(n_jobs=12)(delayed(ExecuteEvaluationRun)(
