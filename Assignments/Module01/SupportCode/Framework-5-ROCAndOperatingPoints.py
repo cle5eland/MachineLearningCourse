@@ -5,16 +5,20 @@ import MachineLearningCourse.MLUtilities.Evaluations.EvaluateBinaryClassificatio
 import MachineLearningCourse.MLUtilities.Learners.LogisticRegression as LogisticRegression
 import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.SMSSpam.SMSSpamDataset as SMSSpamDataset
-kOutputDirectory = "./temp/f75"
+import MachineLearningCourse.MLUtilities.Evaluations.ErrorBounds as ErrorBounds
+import MachineLearningCourse.MLUtilities.Learners.DecisionTree as DecisionTree
+import MachineLearningCourse.MLSolution.ParameterSweep as ParameterSweep
+import MachineLearningCourse.MLUtilities.Data.Sample as Sample
+import MachineLearningCourse.MLProjectSupport.Adult.AdultDataset as AdultDataset
+import MachineLearningCourse.Assignments.Module02.SupportCode.AdultFeaturize as AdultFeaturize
+kOutputDirectory = "./temp/mod2/assignment2"
 
+(xRaw, yRaw) = AdultDataset.LoadRawData()
 
-(xRaw, yRaw) = SMSSpamDataset.LoadRawData()
 
 (xTrainRaw, yTrain, xValidateRaw, yValidate, xTestRaw,
- yTest) = Sample.TrainValidateTestSplit(xRaw, yRaw, percentValidate=.1, percentTest=.1)
+ yTest) = Sample.TrainValidateTestSplit(xRaw, yRaw)
 
-
-# A helper function for calculating FN rate and FP rate across a range of thresholds
 
 def TabulateModelPerformanceForROC(model, xValidate, yValidate):
     pointsToEvaluate = 100
@@ -62,68 +66,65 @@ def findThresholdAndFPRForFNR(targetFNR, FPRs, FNRs, thresholds):
             return (FPR, FNR, threshold)
 
 
-# Hyperparameters to use for the run
-stepSize = 0.1
-convergence = 0.0001
-
 # Set up to hold information for creating ROC curves
 seriesFPRs = []
 seriesFNRs = []
 seriesLabels = []
 
 # Learn a model with 25 frequent features
-featurizer = SMSSpamFeaturize.SMSSpamFeaturize(useHandCraftedFeatures=False)
-featurizer.CreateVocabulary(xTrainRaw, yTrain, numFrequentWords=25)
+featurizer = AdultFeaturize.AdultFeaturize()
+featurizer.CreateFeatureSet(
+    xTrainRaw, yTrain, useCategoricalFeatures=True, useNumericFeatures=True)
 
 xTrain = featurizer.Featurize(xTrainRaw)
 xValidate = featurizer.Featurize(xValidateRaw)
 xTest = featurizer.Featurize(xTestRaw)
+model = DecisionTree.DecisionTree()
+print('featurized')
 
-model = LogisticRegression.LogisticRegression()
-model.fit(xTrain, yTrain, convergence=convergence, stepSize=stepSize)
+model.fit(xTrain, yTrain, maxDepth=8)
+print('fit')
 
 (modelFPRs, modelFNRs, thresholds) = TabulateModelPerformanceForROC(
-    model, xValidate, yValidate)
+    model, xTest, yTest)
 
-print("Frequent FRPs", modelFPRs)
-print('Frequent 0.5', findThresholdAndFNRForFPR(
-    0.5, modelFPRs, modelFNRs, thresholds))
+print('tabulated')
+
+accuracy = EvaluateBinaryClassification.Accuracy(yTest, model.predict(xTest))
 
 seriesFPRs.append(modelFPRs)
 seriesFNRs.append(modelFNRs)
-seriesLabels.append('25 Frequent')
+seriesLabels.append('Categorical and Numeric Features')
 
 # Learn a model with 25 features by mutual information
-featurizer = SMSSpamFeaturize.SMSSpamFeaturize(useHandCraftedFeatures=False)
-featurizer.CreateVocabulary(xTrainRaw, yTrain, numMutualInformationWords=25)
+featurizer = AdultFeaturize.AdultFeaturize()
+featurizer.CreateFeatureSet(
+    xTrainRaw, yTrain, useCategoricalFeatures=True, useNumericFeatures=False)
 
 xTrain = featurizer.Featurize(xTrainRaw)
 xValidate = featurizer.Featurize(xValidateRaw)
 xTest = featurizer.Featurize(xTestRaw)
 
-model = LogisticRegression.LogisticRegression()
-model.fit(xTrain, yTrain, convergence=convergence, stepSize=stepSize)
+model = DecisionTree.DecisionTree()
+model.fit(xTrain, yTrain, maxDepth=8)
 
 (modelFPRs, modelFNRs, thresholds) = TabulateModelPerformanceForROC(
-    model, xValidate, yValidate)
+    model, xTest, yTest)
+
+accuracy = EvaluateBinaryClassification.Accuracy(yTest, model.predict(xTest))
+
+
+(modelFPRs, modelFNRs, thresholds) = TabulateModelPerformanceForROC(
+    model, xTest, yTest)
 seriesFPRs.append(modelFPRs)
 seriesFNRs.append(modelFNRs)
-seriesLabels.append('25 Mutual Information')
+seriesLabels.append('Only Categorical Params')
 
-print('MI 0.1', findThresholdAndFNRForFPR(
-    0.1, modelFPRs, modelFNRs, thresholds))
+Charting.PlotROCs(seriesFPRs, seriesFNRs, seriesLabels, useLines=True, chartTitle="ROC Comparison", xAxisTitle="False Negative Rate",
+                  yAxisTitle="False Positive Rate", outputDirectory=kOutputDirectory, fileName="ROC")
 
-totalFeatures = 75
-numMIs = [x * 5 + 10
-          for x in range(int(totalFeatures/5)-4)]
 
-# New Model
-stepSize = 0.1
-convergence = 0.0001
-
-perf10 = []
-perf50 = []
-
+"""
 for numMI in numMIs:
     numFrequent = totalFeatures - numMI
     featurizer = SMSSpamFeaturize.SMSSpamFeaturize(
@@ -167,13 +168,7 @@ for numMI in numMIs:
 
     Charting.PlotROCs(currentFPRs, currentFNRs, currentLabels, useLines=True, chartTitle="ROC Comparison", xAxisTitle="False Negative Rate",
                       yAxisTitle="False Positive Rate", outputDirectory=kOutputDirectory, fileName="Plot-SMSSpamROCs-Part2-%s-%s" % (numMI, numFrequent))
-
-Charting.PlotROCs(seriesFPRs, seriesFNRs, seriesLabels, useLines=True, chartTitle="ROC Comparison", xAxisTitle="False Negative Rate",
-                  yAxisTitle="False Positive Rate", outputDirectory=kOutputDirectory, fileName="Plot-SMSSpamROCs-Part2-All-%s" % totalFeatures)
-
-headers = ["numMI", "FPR", "FNR", "threshold"]
-print(tabulate(perf10, headers, tablefmt="github"))
-print(tabulate(perf50, headers, tablefmt="github"))
+"""
 
 """
 

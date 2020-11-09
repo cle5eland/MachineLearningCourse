@@ -66,7 +66,6 @@ def FindBestSplitOnFeature(x, y, featureIndex):
         return None
 
     # Do more tests to make sure you haven't hit a terminal case...
-
     indexesInSortedOrder = sorted(
         range(len(x)), key=lambda i: x[i][featureIndex])
 
@@ -137,7 +136,7 @@ class TreeNode(object):
         if self.depth == maxDepth:
             # max recursion depth
             return self
-
+        print('depth ', self.depth)
         if len(self.labelDistribution.items()) <= 1:
             # leaf. TODO: maybe explicitly set, probably just leave as is
             return self
@@ -168,6 +167,7 @@ class TreeNode(object):
         results = {}
 
         for i in range(len(self.x[0])):
+            print('checking feature: ', i)
             (bestThreshold, splitData, IG) = FindBestSplitOnFeature(
                 self.x, self.y, i)
             informationGains[i] = IG
@@ -207,7 +207,7 @@ class TreeNode(object):
             self.children[0].visualize(depth+1)
 
             # greater than or equal
-            for i in range(depth):
+            for _ in range(depth):
                 print(' ', end='', flush=True)
             print(">= %f -- " % self.threshold, end='', flush=True)
             self.children[1].visualize(depth+1)

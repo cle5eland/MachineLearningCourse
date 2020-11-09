@@ -11,24 +11,28 @@ import MachineLearningCourse.Assignments.Module02.SupportCode.AdultFeaturize as 
 (xTrainRaw, yTrain, xValidateRaw, yValidate, xTestRaw,
  yTest) = Sample.TrainValidateTestSplit(xRaw, yRaw)
 
-print("Train is %d samples, %.4f percent >50K." %
-      (len(yTrain), 100.0 * sum(yTrain)/len(yTrain)))
-print("Validate is %d samples, %.4f percent >50K." %
-      (len(yValidate), 100.0 * sum(yValidate)/len(yValidate)))
-print("Test is %d samples %.4f percent >50K." %
-      (len(yTest), 100.0 * sum(yTest)/len(yTest)))
 
-modelDefaults = {
-    'maxDepth': 5
-}
+sweep = False
 
-featurizerDefaults = {
-    'useCategoricalFeatures': True,
-    'useNumericFeatures': False
-}
+if sweep:
+    print("Train is %d samples, %.4f percent >50K." %
+          (len(yTrain), 100.0 * sum(yTrain)/len(yTrain)))
+    print("Validate is %d samples, %.4f percent >50K." %
+          (len(yValidate), 100.0 * sum(yValidate)/len(yValidate)))
+    print("Test is %d samples %.4f percent >50K." %
+          (len(yTest), 100.0 * sum(yTest)/len(yTest)))
 
-ParameterSweep.hyperparameterSweep('maxDepth', xTrainRaw, yTrain, modelType=DecisionTree.DecisionTree,
-                                   featurizerType=AdultFeaturize.AdultFeaturize, featureCreateMethod='CreateFeatureSet', paramValues=[1, 3, 5, 8, 10, 15, 20], modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults)
+    modelDefaults = {
+        'maxDepth': 5
+    }
+
+    featurizerDefaults = {
+        'useCategoricalFeatures': True,
+        'useNumericFeatures': False
+    }
+
+    ParameterSweep.hyperparameterSweep('maxDepth', xTrainRaw, yTrain, modelType=DecisionTree.DecisionTree,
+                                       featurizerType=AdultFeaturize.AdultFeaturize, featureCreateMethod='CreateFeatureSet', paramValues=[1, 3, 5, 8, 10, 15, 20], modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults)
 
 
 # Some simple test cases to get you started. You'll have to work out the correct answers yourself.

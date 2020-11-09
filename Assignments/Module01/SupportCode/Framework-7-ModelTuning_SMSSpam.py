@@ -56,13 +56,25 @@ def ExecuteEvaluationRun(runSpecification, xTrainRaw, yTrain, numberOfFolds=5):
     numMutualInformationWords = runSpecification['numMutualInformationWords']
     convergence = runSpecification['convergence']
     stepSize = runSpecification['stepSize']
-    accuracy = CrossValidation.Execute(2, xTrainRaw, yTrain, numMutualInformationWords=numMutualInformationWords,
-                                       numFrequentWords=numFrequentWords, convergence=convergence, stepSize=stepSize)
-
+    xTrainFold = xTrainRaw
+    yTrainFold = yTrain
+    featurizer = SMSSpamFeaturize.SMSSpamFeaturize()
+    featurizer.CreateVocabulary(
+        xTrainFold, yTrainFold, numMutualInformationWords=numMutualInformationWords, numFrequentWords=numFrequentWords)
+    xTrainFold = featurizer.Featurize(xTrainFold)
+    xEvaluate = featurizer.Featurize(xValidateRaw)
+    logisticModel = LogisticRegression.LogisticRegression()
+    # Fit models
+    logisticModel.fit(xTrainFold, yTrainFold, convergence=convergence,
+                      stepSize=stepSize, verbose=True)
+    # accuracy = CrossValidation.Execute(2, xTrainRaw, yTrain, numMutualInformationWords=numMutualInformationWords,
+    #                                   numFrequentWords=numFrequentWords, convergence=convergence, stepSize=stepSize)
+    accuracy = EvaluateBinaryClassification.Accuracy(
+        yValidate, logisticModel.predict(xEvaluate))
     runSpecification['accuracy'] = accuracy
 
     (lowerBound, upperBound) = ErrorBounds.GetAccuracyBounds(
-        accuracy, len(xTrainRaw), 0.5)
+        accuracy, len(xEvaluate), 0.5)
     runSpecification['lowerBound'] = lowerBound
     runSpecification['upperBound'] = upperBound
 
@@ -83,6 +95,10 @@ best = [
     ["numFrequentWords", 75, 8, 0.00001, 100]
 ]
 
+final = [
+    ["stepSize", 75, 8, 0.00001, 100],
+]
+
 """
 def makeRunSpec(input):
     runSpecification = {}
@@ -91,6 +107,8 @@ def makeRunSpec(input):
     runSpecification['stepSize'] = input[2]
     runSpecification['convergence'] = input[3]
     runSpecification['numFrequentWords'] = input[4]
+
+    return runSpecification
 
 
 evaluationRunSpecifications = list(map(makeRunSpec, best))
@@ -158,22 +176,17 @@ evaluations = Parallel(n_jobs=12)(delayed(ExecuteEvaluationRun)(
 
 optimizing = evaluations[0]["optimizing"]
 print(evaluations[0])
-headers = [optimizing, "accuracy", "lower bound", "upper bound", "runtime"]
-table = list(map(lambda evaluation: [evaluation[optimizing], evaluation["accuracy"],
+headers = ["optimizing", "value", "accuracy",
+           "lower bound", "upper bound", "runtime"]
+table = list(map(lambda evaluation: [evaluation["optimizing"], evaluation[optimizing], evaluation["accuracy"],
                                      evaluation["lowerBound"], evaluation["upperBound"], evaluation["runtime"]], evaluations))
 print(tabulate(table, headers, tablefmt="github"))
 
-""" def plotAccuracy(evaluation):
-    series = [0 in range(len(paramValues))]
-    index = series.index(evaluation[optimizing])
-    series[index]"""
-# evaluations = [ExecuteEvaluationRun(
-#     runSpec, xTrainRaw, yTrain) for runSpec in evaluationRunSpecifications]
 series = list(map(lambda evaluation: evaluation["accuracy"], evaluations))
 errorBounds = list(map(lambda evaluation:
                        evaluation["upperBound"] - evaluation['accuracy'], evaluations))
-Charting.PlotSeriesWithErrorBars([series], [errorBounds], ["Accuracies with 50% Double Error Bounds"], paramValues,
-                                 chartTitle="Optimizing %s - Round 2" % optimizing, xAxisTitle=optimizing, yAxisTitle="Accuracy", outputDirectory=kOutputDirectory, yBotLimit=0.9, yTopLimit=1.0, fileName="%s-param-optimization-2" % optimizing)
+Charting.PlotSeriesWithErrorBars([series], [errorBounds], ["Accuracies with 50% Double Error Bounds"], [x + 1 for x in range(len(series))],
+                                 chartTitle="Optimization Path", xAxisTitle="Sweep Number", yAxisTitle="Accuracy", outputDirectory=kOutputDirectory, yBotLimit=0.9, yTopLimit=1.0, fileName="param-optimization-all")
 
 for evaluation in evaluations:
     print(evaluation)
