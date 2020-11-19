@@ -7,6 +7,7 @@ import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.SMSSpam.SMSSpamDataset as SMSSpamDataset
 import MachineLearningCourse.MLUtilities.Evaluations.ErrorBounds as ErrorBounds
 import MachineLearningCourse.MLUtilities.Learners.DecisionTree as DecisionTree
+import MachineLearningCourse.MLUtilities.Learners.DecisionTreeWeighted as DecisionTreeWeighted
 import MachineLearningCourse.MLSolution.ParameterSweep as ParameterSweep
 import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.Adult.AdultDataset as AdultDataset
@@ -94,19 +95,21 @@ accuracy = EvaluateBinaryClassification.Accuracy(yTest, model.predict(xTest))
 
 seriesFPRs.append(modelFPRs)
 seriesFNRs.append(modelFNRs)
-seriesLabels.append('Categorical and Numeric Features')
+seriesLabels.append('Unweighted Tree')
 
 # Learn a model with 25 features by mutual information
 featurizer = AdultFeaturize.AdultFeaturize()
 featurizer.CreateFeatureSet(
-    xTrainRaw, yTrain, useCategoricalFeatures=True, useNumericFeatures=False)
+    xTrainRaw, yTrain, useCategoricalFeatures=True, useNumericFeatures=True)
 
 xTrain = featurizer.Featurize(xTrainRaw)
 xValidate = featurizer.Featurize(xValidateRaw)
 xTest = featurizer.Featurize(xTestRaw)
 
-model = DecisionTree.DecisionTree()
-model.fit(xTrain, yTrain, maxDepth=8)
+model = DecisionTreeWeighted.DecisionTreeWeighted()
+weights = [
+    10 if x[0] < 45 else 1 for x in xTrain]
+model.fit(xTrain, yTrain, weights=weights, maxDepth=8)
 
 (modelFPRs, modelFNRs, thresholds) = TabulateModelPerformanceForROC(
     model, xTest, yTest)
@@ -118,7 +121,7 @@ accuracy = EvaluateBinaryClassification.Accuracy(yTest, model.predict(xTest))
     model, xTest, yTest)
 seriesFPRs.append(modelFPRs)
 seriesFNRs.append(modelFNRs)
-seriesLabels.append('Only Categorical Params')
+seriesLabels.append('Weighted Tree')
 
 Charting.PlotROCs(seriesFPRs, seriesFNRs, seriesLabels, useLines=True, chartTitle="ROC Comparison", xAxisTitle="False Negative Rate",
                   yAxisTitle="False Positive Rate", outputDirectory=kOutputDirectory, fileName="ROC")

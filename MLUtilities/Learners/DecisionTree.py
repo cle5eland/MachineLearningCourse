@@ -102,6 +102,8 @@ def FindBestSplitOnFeature(x, y, featureIndex):
             gain = IG
 
     if lastValidIndex != None:
+        (currX, nextX) = [sortedX[lastValidIndex][featureIndex],
+                          sortedX[lastValidIndex+1][featureIndex]]
         (IG, splitX, splitY) = InformationGain(
             totalEntropy, sortedX, sortedY, lastValidIndex+1)
         if (IG > gain):
@@ -132,6 +134,16 @@ class TreeNode(object):
         for label in y:
             self.labelDistribution[label] += 1
 
+    def createNodes(self, splitData):
+        leftNode = TreeNode(self.depth+1)
+        rightNode = TreeNode(self.depth+1)
+
+        [splitX, splitY] = splitData
+
+        leftNode.addData(splitX[0], splitY[0])
+        rightNode.addData(splitX[1], splitY[1])
+        return (leftNode, rightNode)
+
     def growTree(self, maxDepth):
         if self.depth == maxDepth:
             # max recursion depth
@@ -149,18 +161,16 @@ class TreeNode(object):
         self.splitIndex = maxFeature
         self.threshold = bestThreshold
 
-        leftNode = TreeNode(self.depth+1)
-        rightNode = TreeNode(self.depth+1)
-
-        [splitX, splitY] = splitData
-
-        leftNode.addData(splitX[0], splitY[0])
-        rightNode.addData(splitX[1], splitY[1])
+        (leftNode, rightNode) = self.createNodes(splitData)
         leftNode.growTree(maxDepth)
         rightNode.growTree(maxDepth)
         self.children = [leftNode, rightNode]
 
         return self
+
+    def findBestSplitOnFeature(self, i):
+        return FindBestSplitOnFeature(
+            self.x, self.y, i)
 
     def bestSplitAttribute(self):
         informationGains = {}
@@ -168,8 +178,7 @@ class TreeNode(object):
 
         for i in range(len(self.x[0])):
             print('checking feature: ', i)
-            (bestThreshold, splitData, IG) = FindBestSplitOnFeature(
-                self.x, self.y, i)
+            (bestThreshold, splitData, IG) = self.findBestSplitOnFeature(i)
             informationGains[i] = IG
             results[i] = (bestThreshold, splitData, IG)
 
@@ -182,11 +191,14 @@ class TreeNode(object):
         (bestThreshold, splitData, IG) = results[maxFeature]
         return (maxFeature, bestThreshold, splitData, IG)
 
+    def __leafProbability(self, x):
+        return (float(self.labelDistribution[1] + 1))/float(len(self.y) + 2)
+
     def predictProbability(self, x):
         # Remember to find the correct leaf then use an m-estimate to smooth the probability:
         #  (#_with_label_1 + 1) / (#_at_leaf + 2)
         if (self.isLeaf()):
-            return (float(self.labelDistribution[1] + 1))/float(len(self.y) + 2)
+            return self.__leafProbability(x)
         if x[self.splitIndex] < self.threshold:
             return self.children[0].predictProbability(x)
         else:
