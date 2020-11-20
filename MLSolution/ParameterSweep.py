@@ -11,7 +11,7 @@ import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.SMSSpam.SMSSpamDataset as SMSSpamDataset
 
 
-kOutputDirectory = "./temp/mod2/assignment2"
+kOutputDirectory = "./temp/mod2/assignment3"
 
 
 def ExecuteEvaluationRun(runSpecification, xTrainRaw, yTrain, numberOfFolds=5):

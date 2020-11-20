@@ -120,9 +120,8 @@ class WeightedTreeNode(TreeNode):
         return FindBestSplitOnFeature(
             self.x, self.y, self.weights, i)
 
-    def __leafProbability(self, x):
+    def leafProbability(self, x):
         weight = dot(self.y, self.weights)
-        print('dot weight', weight)
         return (weight + 1.0 * self.prior)/(sum(self.weights) + 2.0 * self.prior)
 
     def createNodes(self, splitData):

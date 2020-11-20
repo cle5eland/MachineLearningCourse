@@ -6,7 +6,7 @@ import MachineLearningCourse.Assignments.Module02.SupportCode.AdultFeaturize as 
 import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.Adult.AdultDataset as AdultDataset
 import MachineLearningCourse.MLSolution.ParameterSweep as ParameterSweep
-kOutputDirectory = "C:\\temp\\visualize"
+kOutputDirectory = "./temp/mod2/assignment4"
 
 
 (xRaw, yRaw) = AdultDataset.LoadRawData()

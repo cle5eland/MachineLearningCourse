@@ -148,7 +148,7 @@ class TreeNode(object):
         if self.depth == maxDepth:
             # max recursion depth
             return self
-        print('depth ', self.depth)
+        # print('depth ', self.depth)
         if len(self.labelDistribution.items()) <= 1:
             # leaf. TODO: maybe explicitly set, probably just leave as is
             return self
@@ -177,7 +177,6 @@ class TreeNode(object):
         results = {}
 
         for i in range(len(self.x[0])):
-            print('checking feature: ', i)
             (bestThreshold, splitData, IG) = self.findBestSplitOnFeature(i)
             informationGains[i] = IG
             results[i] = (bestThreshold, splitData, IG)
@@ -191,14 +190,14 @@ class TreeNode(object):
         (bestThreshold, splitData, IG) = results[maxFeature]
         return (maxFeature, bestThreshold, splitData, IG)
 
-    def __leafProbability(self, x):
+    def leafProbability(self, x):
         return (float(self.labelDistribution[1] + 1))/float(len(self.y) + 2)
 
     def predictProbability(self, x):
         # Remember to find the correct leaf then use an m-estimate to smooth the probability:
         #  (#_with_label_1 + 1) / (#_at_leaf + 2)
         if (self.isLeaf()):
-            return self.__leafProbability(x)
+            return self.leafProbability(x)
         if x[self.splitIndex] < self.threshold:
             return self.children[0].predictProbability(x)
         else:
