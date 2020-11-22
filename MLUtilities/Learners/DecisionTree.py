@@ -97,6 +97,8 @@ def FindBestSplitOnFeature(x, y, featureIndex):
         (IG, splitX, splitY) = InformationGain(
             totalEntropy, sortedX, sortedY, lastValidIndex+1)
         if (IG > gain):
+            (currX, nextX) = [sortedX[lastValidIndex][featureIndex],
+                              sortedX[lastValidIndex+1][featureIndex]]
             bestThreshold = (float(currX + nextX))/2.0
             splitData = [splitX, splitY]
             gain = IG
@@ -110,7 +112,6 @@ def FindBestSplitOnFeature(x, y, featureIndex):
             bestThreshold = (float(currX + nextX))/2.0
             splitData = [splitX, splitY]
             gain = IG
-
     return (bestThreshold, splitData, gain)
 
 
@@ -154,7 +155,7 @@ class TreeNode(object):
             return self
 
         (maxFeature, bestThreshold, splitData, IG) = self.bestSplitAttribute()
-        if IG == 0:
+        if IG <= 0:
             # terminate
             return self
 
