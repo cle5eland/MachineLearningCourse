@@ -11,7 +11,7 @@ import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.SMSSpam.SMSSpamDataset as SMSSpamDataset
 
 
-kOutputDirectory = "./temp/mod2/assignment3"
+kOutputDirectory = "./temp/mod2/assignment6"
 
 
 def ExecuteEvaluationRun(runSpecification, xTrainRaw, yTrain, numberOfFolds=5):
@@ -42,7 +42,7 @@ def outputTable(optimizing: str, evaluations: []):
     print(tabulate(table, headers, tablefmt="github"))
 
 
-def outputPlot(optimizing: str, paramValues: [], evaluations: []):
+def outputPlot(optimizing: str, paramValues: [], evaluations: [], outputName=None):
     series = list(map(lambda evaluation: evaluation["accuracy"], evaluations))
     errorBounds = list(map(lambda evaluation:
                            evaluation["upperBound"] - evaluation['accuracy'], evaluations))
@@ -51,15 +51,15 @@ def outputPlot(optimizing: str, paramValues: [], evaluations: []):
     yTopLimit = max(series) + 0.01
     yTopLimit = yTopLimit if yTopLimit < 1 else 1
     Charting.PlotSeriesWithErrorBars([series], [errorBounds], ["Accuracies with 50% Double Error Bounds"], paramValues,
-                                     chartTitle="Optimizing %s" % optimizing, xAxisTitle=optimizing, yAxisTitle="Accuracy", yBotLimit=yBotLimit, yTopLimit=yTopLimit, outputDirectory=kOutputDirectory, fileName="%s-param-optimization" % optimizing)
+                                     chartTitle="Optimizing %s" % optimizing, xAxisTitle=optimizing, yAxisTitle="Accuracy", yBotLimit=yBotLimit, yTopLimit=yTopLimit, outputDirectory=kOutputDirectory, fileName=outputName if outputName != None else "%s-param-optimization" % optimizing)
 
 
-def outputResult(optimizing: str, paramValues: [], evaluations: []):
+def outputResult(optimizing: str, paramValues: [], evaluations: [], outputName=None):
     outputTable(optimizing, evaluations)
-    outputPlot(optimizing, paramValues, evaluations)
+    outputPlot(optimizing, paramValues, evaluations, outputName)
 
 
-def hyperparameterSweep(parameterName: str, xTrainRaw: list, yTrain: list, modelType, featurizerType, featureCreateMethod: str, paramValues: list, modelDefaults: dict, featurizerDefaults: dict, modelParam: bool = True):
+def hyperparameterSweep(parameterName: str, xTrainRaw: list, yTrain: list, modelType, featurizerType, featureCreateMethod: str, paramValues: list, modelDefaults: dict, featurizerDefaults: dict, modelParam: bool = True, xValidateRaw=None, yValidate=None, outputName=None):
     evaluationRunSpecifications = []
     # paramValues = [1]
     # Step Size = 5
@@ -91,4 +91,5 @@ def hyperparameterSweep(parameterName: str, xTrainRaw: list, yTrain: list, model
     evaluations = Parallel(n_jobs=12)(delayed(ExecuteEvaluationRun)(
         runSpec, xTrainRaw, yTrain, 2) for runSpec in evaluationRunSpecifications)
 
-    outputResult(parameterName, paramValues, evaluations)
+    outputResult(parameterName, paramValues,
+                 evaluations, outputName=outputName)

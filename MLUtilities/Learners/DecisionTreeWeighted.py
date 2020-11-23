@@ -242,7 +242,7 @@ class DecisionTreeWeighted(DecisionTree):
     def fit(self, x: [[float]], y: [int], maxDepth=10000, weights: [float] = None, verbose=True):
         if weights == None:
             # Just do normal decision tree
-            return super().fit(x, y, maxDepth=maxDepth, verbose=verbose)
+            weights = [1.0 for _ in range(len(y))]
 
         self.maxDepth = maxDepth
 

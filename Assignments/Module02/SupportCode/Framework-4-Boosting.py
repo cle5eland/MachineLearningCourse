@@ -14,7 +14,7 @@ import time
 from joblib import Parallel, delayed
 
 
-kOutputDirectory = "./temp/mod2/assignment3"
+kOutputDirectory = "./temp/mod2/assignment4"
 
 
 # remember this helper function
@@ -36,7 +36,7 @@ yTest = concept.predict(xTest)
 xTrain = generator.generate(1000)
 yTrain = concept.predict(xTrain)
 
-RunVisualize = True
+RunVisualize = False
 if RunVisualize:
     # this code outputs the true concept.
     visualize = Visualize2D.Visualize2D(kOutputDirectory, "generated-concept")
@@ -120,9 +120,9 @@ def hyperparameterSweep(parameterName: str, modelType, paramValues: list, modelD
     ParameterSweep.outputResult(parameterName, paramValues, evaluations)
 
 
-RunParameterSweep = False
+RunParameterSweep = True
 if RunParameterSweep:
-    rounds = [1, 10, 20, 50, 100, 200, 500, 1000, 2000]
+    rounds = [1, 10, 20, 50, 100]
     modelParams = {
         "maxDepth": 1
     }
