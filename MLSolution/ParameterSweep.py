@@ -14,14 +14,15 @@ import MachineLearningCourse.MLProjectSupport.SMSSpam.SMSSpamDataset as SMSSpamD
 kOutputDirectory = "./temp/mod2/assignment6"
 
 
-def ExecuteEvaluationRun(runSpecification, xTrainRaw, yTrain, numberOfFolds=5):
+def ExecuteEvaluationRun(runSpecification, xTrainRaw, yTrain, numberOfFolds=5, xValidationRaw=None, yValidation=None):
     startTime = time.time()
 
     modelSpecification = runSpecification['modelSpecification']
     paramSpecification = runSpecification['parameterSpecification']
-    accuracy = CrossValidation.NewExecute(
-        numberOfFolds, xTrainRaw, yTrain, **modelSpecification, **paramSpecification)
-
+    result = CrossValidation.NewExecute(
+        numberOfFolds, xTrainRaw, yTrain, **modelSpecification, **paramSpecification, xValidationRaw=xValidationRaw, yValidation=yValidation)
+    accuracy = result['accuracy']
+    trainAccuracy = result['trainAccuracy']
     runSpecification['accuracy'] = accuracy
 
     (lowerBound, upperBound) = ErrorBounds.GetAccuracyBounds(
@@ -29,6 +30,13 @@ def ExecuteEvaluationRun(runSpecification, xTrainRaw, yTrain, numberOfFolds=5):
     runSpecification['lowerBound'] = lowerBound
     runSpecification['upperBound'] = upperBound
 
+    (lowerBound, upperBound) = ErrorBounds.GetAccuracyBounds(
+        trainAccuracy, len(xTrainRaw), 0.5)
+    runSpecification['trainAccuracy'] = trainAccuracy
+    runSpecification['trainLowerBound'] = lowerBound
+    runSpecification['trainUpperBound'] = upperBound
+    print('model spec', modelSpecification)
+    print('accuracy:', accuracy)
     endTime = time.time()
     runSpecification['runtime'] = endTime - startTime
 
@@ -44,13 +52,18 @@ def outputTable(optimizing: str, evaluations: []):
 
 def outputPlot(optimizing: str, paramValues: [], evaluations: [], outputName=None):
     series = list(map(lambda evaluation: evaluation["accuracy"], evaluations))
+    trainSeries = list(
+        map(lambda evaluation: evaluation["trainAccuracy"], evaluations))
+
     errorBounds = list(map(lambda evaluation:
                            evaluation["upperBound"] - evaluation['accuracy'], evaluations))
-    yBotLimit = min(series) - 0.01
+    trainErrorBounds = list(map(lambda evaluation:
+                                evaluation["trainUpperBound"] - evaluation['trainAccuracy'], evaluations))
+    yBotLimit = min(min(series), min(trainSeries)) - 0.01
     yBotLimit = yBotLimit if yBotLimit > 0 else 0
-    yTopLimit = max(series) + 0.01
+    yTopLimit = max(max(series), max(trainSeries)) + 0.01
     yTopLimit = yTopLimit if yTopLimit < 1 else 1
-    Charting.PlotSeriesWithErrorBars([series], [errorBounds], ["Accuracies with 50% Double Error Bounds"], paramValues,
+    Charting.PlotSeriesWithErrorBars([series, trainSeries], [errorBounds, trainErrorBounds], ["Accuracies with 50% Double Error Bounds", "Training set accuracies with 50% Double Error Bounds"], paramValues,
                                      chartTitle="Optimizing %s" % optimizing, xAxisTitle=optimizing, yAxisTitle="Accuracy", yBotLimit=yBotLimit, yTopLimit=yTopLimit, outputDirectory=kOutputDirectory, fileName=outputName if outputName != None else "%s-param-optimization" % optimizing)
 
 
@@ -88,8 +101,10 @@ def hyperparameterSweep(parameterName: str, xTrainRaw: list, yTrain: list, model
 
         evaluationRunSpecifications.append(runSpecification)
 
+    numberOfFolds = 2 if xValidateRaw == None or yValidate == None else 1
+
     evaluations = Parallel(n_jobs=12)(delayed(ExecuteEvaluationRun)(
-        runSpec, xTrainRaw, yTrain, 2) for runSpec in evaluationRunSpecifications)
+        runSpec, xTrainRaw, yTrain, numberOfFolds, xValidateRaw, yValidate) for runSpec in evaluationRunSpecifications)
 
     outputResult(parameterName, paramValues,
                  evaluations, outputName=outputName)

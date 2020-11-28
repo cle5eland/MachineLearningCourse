@@ -56,12 +56,13 @@ def CrossValidation(x, y, numberOfFolds, foldIDToSelect):
     return(xTrain, yTrain, xEvaluate, yEvaluate)
 
 
-def NewExecute(numberOfFolds: int, xTrain: [], yTrain: [], modelType, modelParams: dict, featurizerParams: dict, featurizerType, featureCreateMethod: str):
+def NewExecute(numberOfFolds: int, xTrain: [], yTrain: [], modelType, modelParams: dict, featurizerParams: dict, featurizerType, featureCreateMethod: str, xValidationRaw=None, yValidation=None):
     totalCorrect = 0
+    totalTrainCorrect = 0
     for i in range(numberOfFolds):
         # Get data for fold
         (xTrainFold, yTrainFold, xEvaluate, yEvaluate) = CrossValidation(
-            xTrain, yTrain, numberOfFolds, i)
+            xTrain, yTrain, numberOfFolds, i) if numberOfFolds > 1 else (xTrain, yTrain, xValidationRaw, yValidation)
         # Feature Engineering
         featurizer = featurizerType()
         createFeatures = getattr(featurizer, featureCreateMethod)
@@ -76,10 +77,16 @@ def NewExecute(numberOfFolds: int, xTrain: [], yTrain: [], modelType, modelParam
         # Count accurate predictions
         totalCorrect += __countCorrect(yEvaluate,
                                        model.predict(xEvaluate))
+        totalTrainCorrect += __countCorrect(yTrainFold,
+                                            model.predict(xTrainFold))
 
     # Calculate total accuracy
-    logAccuracy = totalCorrect/len(xTrain)
-    return logAccuracy
+    denom = len(xTrain) if numberOfFolds > 1 else len(yValidation)
+    denomTrain = len(xTrain)
+
+    logAccuracy = totalCorrect/denom
+    trainAccuracy = totalTrainCorrect/denomTrain
+    return {"accuracy": logAccuracy, "trainAccuracy": trainAccuracy}
 
 
 def Execute(numberOfFolds: int, xTrain: [], yTrain: [], numMutualInformationWords: int, numFrequentWords: int, convergence: float, stepSize: float):
