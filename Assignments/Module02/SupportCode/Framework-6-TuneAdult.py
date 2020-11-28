@@ -24,18 +24,18 @@ featurizerDefaults = {
     'useNumericFeatures': True
 }
 
-rounds = [5, 10, 20, 50, 100, 200, 1000, 2000]
+rounds = [25, 35, 40, 45]
 modelParams = {
-    "maxDepth": 2
+    "maxDepth": 5
 }
 
-# rounds = [{"maxDepth": 1}, {"maxDepth": 3}, {
-#    "maxDepth": 5}, {"maxDepth": 8}, {"maxDepth": 10}, {"maxDepth": 15}]
+# rounds = [{"maxDepth": 1}, {"maxDepth": 2}, {
+#   "maxDepth": 3}, {"maxDepth": 5}, {"maxDepth": 7}, {"maxDepth": 9}]
 modelDefaults = {
-    'rounds': 10,
+    'rounds': 50,
     'modelType': DecisionTreeWeighted,
     'modelParams': modelParams
 }
 
 ParameterSweep.hyperparameterSweep('rounds', xTrainRaw, yTrain, modelType=AdaBoost,
-                                   featurizerType=AdultFeaturize.AdultFeaturize, featureCreateMethod='CreateFeatureSet', paramValues=rounds, modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults, outputName="adaboost-rounds-normalized-numerics")
+                                   featurizerType=AdultFeaturize.AdultFeaturize, featureCreateMethod='CreateFeatureSet', paramValues=rounds, modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults, outputName="max-depth-5-round-param-sweep-lower-vals")

@@ -19,7 +19,7 @@ featurizerDefaults = {
     'useCategoricalFeatures': True,
     'useNumericFeatures': True
 }
-
+"""
 
 modelDefaults = {
     'maxDepth': 5,
@@ -47,10 +47,11 @@ modelDefaults = {
     "convergence": 0.0001,
 }
 
-rounds = [8.0]
+rounds = [0.01, 0.1, 1.0, 3.0, 8.0, 12.0]
 
 ParameterSweep.hyperparameterSweep('stepSize', xTrainRaw, yTrain, modelType=LogisticRegression,
                                    featurizerType=AdultFeaturize.AdultFeaturize, featureCreateMethod='CreateFeatureSet', paramValues=rounds, modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults, xValidateRaw=xValidateRaw, yValidate=yValidate)
+
 """
 
 rounds = [5, 10, 20, 50, 100, 200]
@@ -65,3 +66,4 @@ modelDefaults = {
 
 ParameterSweep.hyperparameterSweep('rounds', xTrainRaw, yTrain, modelType=AdaBoost,
                                    featurizerType=AdultFeaturize.AdultFeaturize, featureCreateMethod='CreateFeatureSet', paramValues=rounds, modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults, xValidateRaw=xValidateRaw, yValidate=yValidate)
+"""
