@@ -13,13 +13,17 @@ import MachineLearningCourse.MLSolution.ParameterSweep as ParameterSweep
 import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.Adult.AdultDataset as AdultDataset
 import MachineLearningCourse.Assignments.Module02.SupportCode.AdultFeaturize as AdultFeaturize
-kOutputDirectory = "./temp/mod2/assignment6"
+import MachineLearningCourse.Assignments.Module03.SupportCode.BlinkFeaturize as BlinkFeaturize
+import MachineLearningCourse.MLProjectSupport.Blink.BlinkDataset as BlinkDataset
 
-(xRaw, yRaw) = AdultDataset.LoadRawData()
+
+kOutputDirectory = "./temp/mod3/assignment1"
+
+(xRaw, yRaw) = BlinkDataset.LoadRawData()
 
 
 (xTrainRaw, yTrain, xValidateRaw, yValidate, xTestRaw,
- yTest) = Sample.TrainValidateTestSplit(xRaw, yRaw, percentValidate=0.5, percentTest=0.05)
+ yTest) = Sample.TrainValidateTestSplit(xRaw, yRaw)
 
 
 def TabulateModelPerformanceForROC(model, xValidate, yValidate):
@@ -78,9 +82,9 @@ seriesLabels = []
 
 # ADABoost
 
-featurizer = AdultFeaturize.AdultFeaturize()
+featurizer = BlinkFeaturize.BlinkFeaturize()
 featurizer.CreateFeatureSet(
-    xTrainRaw, yTrain, useCategoricalFeatures=True, useNumericFeatures=True)
+    xTrainRaw, yTrain, includeEdgeFeatures=True)
 
 xTrain = featurizer.Featurize(xTrainRaw)
 xValidate = featurizer.Featurize(xValidateRaw)
@@ -89,7 +93,7 @@ xTest = featurizer.Featurize(xTestRaw)
 model = AdaBoost()
 
 print('fitting model...')
-model.fit(xTrain, yTrain, rounds=150, modelType=DecisionTreeWeighted.DecisionTreeWeighted,
+model.fit(xTrain, yTrain, rounds=100, modelType=DecisionTreeWeighted.DecisionTreeWeighted,
           modelParams={"maxDepth": 5})
 print('model fit')
 print('tabulating...')
@@ -98,19 +102,22 @@ print('tabulating...')
 print('tabulated')
 seriesFPRs.append(modelFPRs)
 seriesFNRs.append(modelFNRs)
-seriesLabels.append('ADABoost rounds 150 maxDepth 5')
+seriesLabels.append('ADABoost edge features only')
 
 
 # Learn a model with 25 frequent features
-featurizer = AdultFeaturize.AdultFeaturize()
+featurizer = BlinkFeaturize.BlinkFeaturize()
 featurizer.CreateFeatureSet(
-    xTrainRaw, yTrain, useCategoricalFeatures=True, useNumericFeatures=True)
+    xTrainRaw, yTrain, includeEdgeFeatures=True, includeSubdividedFeatures=False)
 
 xTrain = featurizer.Featurize(xTrainRaw)
 xValidate = featurizer.Featurize(xValidateRaw)
 xTest = featurizer.Featurize(xTestRaw)
-model = LogisticRegression.LogisticRegression()
-model.fit(xTrain, yTrain, convergence=0.0001, stepSize=3.0)
+model = AdaBoost()
+
+print('fitting model...')
+model.fit(xTrain, yTrain, rounds=100, modelType=DecisionTreeWeighted.DecisionTreeWeighted,
+          modelParams={"maxDepth": 5})
 
 (modelFPRs, modelFNRs, thresholds) = TabulateModelPerformanceForROC(
     model, xTest, yTest)
@@ -121,33 +128,7 @@ accuracy = EvaluateBinaryClassification.Accuracy(yTest, model.predict(xTest))
 
 seriesFPRs.append(modelFPRs)
 seriesFNRs.append(modelFNRs)
-seriesLabels.append('Logistic Regression convergence 0.0001 stepSize 3.0')
-
-# Learn a model with 25 features by mutual information
-featurizer = AdultFeaturize.AdultFeaturize()
-featurizer.CreateFeatureSet(
-    xTrainRaw, yTrain, useCategoricalFeatures=True, useNumericFeatures=True)
-
-xTrain = featurizer.Featurize(xTrainRaw)
-xValidate = featurizer.Featurize(xValidateRaw)
-xTest = featurizer.Featurize(xTestRaw)
-
-model = DecisionTreeWeighted.DecisionTreeWeighted()
-weights = [
-    1 for x in xTrain]
-model.fit(xTrain, yTrain, weights=weights, maxDepth=8)
-
-(modelFPRs, modelFNRs, thresholds) = TabulateModelPerformanceForROC(
-    model, xTest, yTest)
-
-accuracy = EvaluateBinaryClassification.Accuracy(yTest, model.predict(xTest))
-
-
-(modelFPRs, modelFNRs, thresholds) = TabulateModelPerformanceForROC(
-    model, xTest, yTest)
-seriesFPRs.append(modelFPRs)
-seriesFNRs.append(modelFNRs)
-seriesLabels.append('Decision Tree maxDepth 8')
+seriesLabels.append('ADABoost with edge features and new features')
 
 
 Charting.PlotROCs(seriesFPRs, seriesFNRs, seriesLabels, useLines=True, chartTitle="ROC Comparison", xAxisTitle="False Negative Rate",

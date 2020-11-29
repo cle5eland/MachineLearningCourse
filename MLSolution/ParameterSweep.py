@@ -70,13 +70,13 @@ def outputResult(optimizing: str, paramValues: [], evaluations: [], outputName=N
     outputPlot(optimizing, paramValues, evaluations, outputName)
 
 
-def hyperparameterSweep(parameterName: str, xTrainRaw: list, yTrain: list, modelType, modelInitParams: dict, featurizerType, featureCreateMethod: str, paramValues: list, modelDefaults: dict, featurizerDefaults: dict, modelParam: bool = True, xValidateRaw=None, yValidate=None, outputName=None):
+def hyperparameterSweep(parameterName: str, xTrainRaw: list, yTrain: list, modelType, featurizerType, featureCreateMethod: str, paramValues: list, modelDefaults: dict, featurizerDefaults: dict, modelParam: bool = True, modelInitParams: dict = None, xValidateRaw=None, yValidate=None, outputName=None):
     evaluationRunSpecifications = []
     # paramValues = [1]
     # Step Size = 5
     modelSpecification = {}
     modelSpecification['modelType'] = modelType
-    modelSpecification['modelInitParams'] = modelInitParams
+    modelSpecification['modelInitParams'] = modelInitParams if modelInitParams != None else {}
     modelSpecification['featurizerType'] = featurizerType
     modelSpecification['featureCreateMethod'] = featureCreateMethod
     for param in paramValues:

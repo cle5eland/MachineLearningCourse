@@ -10,6 +10,7 @@ import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.Blink.BlinkDataset as BlinkDataset
 import MachineLearningCourse.MLUtilities.Data.CrossValidation as CrossValidation
 import MachineLearningCourse.MLSolution.ParameterSweep as ParameterSweep
+import MachineLearningCourse.MLUtilities.Visualizations.Charting as Charting
 
 kOutputDirectory = "./temp/mod3/assignment2"
 
@@ -36,10 +37,8 @@ featurizer.CreateFeatureSet(xTrainRaw, yTrain, includeEdgeFeatures=False,
                             includeIntensities=True, intensitiesSampleStride=sampleStride)
 
 xTrain = featurizer.Featurize(xTrainRaw)
-"""
 xValidate = featurizer.Featurize(xValidateRaw)
 xTest = featurizer.Featurize(xTestRaw)
-"""
 
 
 def VisualizeWeights(weightArray, outputPath, sampleStride=2):
@@ -86,30 +85,56 @@ for filterNumber in range(hiddenStructure[0]):
     VisualizeWeights(weights[filterNumber], "%s/filters/epoch%d_neuron%d.jpg" % (
         kOutputDirectory, 0, filterNumber), sampleStride=sampleStride)
 """
-"""
-maxEpochs = 1000
-step = 0.1
-convergence = 0.1
 
-model.fit(xTrain, yTrain, maxEpochs=1000,
-          stepSize=step, convergence=convergence)"""
-"""
+
+def outputPlot(epochs: [], valAcc: [], trainAcc: [], outputName):
+    yBotLimit = min(min(valAcc), min(trainAcc)) - 0.01
+    yBotLimit = yBotLimit if yBotLimit > 0 else 0
+    yTopLimit = max(max(valAcc), max(trainAcc)) + 0.01
+    yTopLimit = yTopLimit if yTopLimit < 1 else 1
+    Charting.PlotSeries([valAcc, trainAcc], ["Validation Accuracy", "Training Set Accuracy"], epochs,
+                        chartTitle="Single Hidden Layer Width 10 Validation and Training Accuracies", xAxisTitle="Epoch", yAxisTitle="Accuracy", yBotLimit=yBotLimit, yTopLimit=yTopLimit, outputDirectory=kOutputDirectory, fileName=outputName)
+
+
+maxEpochs = 50000
+step = 0.05
+convergence = 0.0001
+
+hiddenStructure = [5, 5]
+print('initing model...')
+model = NeuralNetworkFullyConnected(
+    numInputFeatures=len(xTrain[0]), hiddenLayersNodeCounts=hiddenStructure)
+print('Done.')
+numEpoch = []
+trainAcc = []
+valAcc = []
+epoch = None
 for i in range(maxEpochs):
     if not model.converged:
+        epoch = i
+        print('epoch ', i)
         model.incrementalFit(xTrain, yTrain, epochs=1,
                              stepSize=step, convergence=convergence)
-        weights = model.layers[1].getWeights()
+        numEpoch.append(i)
+        yPredicted = model.predict(xValidate)
+        correct = CrossValidation.__countCorrect(yValidate, yPredicted)
+        accuracy = correct / float(len(yValidate))
+        valAcc.append(accuracy)
+        yPredicted = model.predict(xTrain)
+        correct = CrossValidation.__countCorrect(yTrain, yPredicted)
+        accuracy = correct / float(len(yTrain))
+        trainAcc.append(accuracy)
 
-        for filterNumber in range(hiddenStructure[0]):
-            # update the first parameter based on your representation
-            VisualizeWeights(weights[filterNumber], "%s/filters/epoch%d_neuron%d.jpg" % (
-                kOutputDirectory, i+1, filterNumber), sampleStride=sampleStride)"""
+print('model fit.')
 
 """
-yPredicted = model.predict(xValidate)
-correct = CrossValidation.__countCorrect(yValidate, yPredicted)
-accuracy = correct / float(len(yValidate))
-print('ACC:', accuracy)
+weights = model.layers[1].getWeights()
+
+for filterNumber in range(hiddenStructure[0]):
+    # update the first parameter based on your representation
+    VisualizeWeights(weights[filterNumber], "%s/filters/single-layer-epoch%d_neuron%d.jpg" % (
+        kOutputDirectory, epoch, filterNumber), sampleStride=sampleStride)"""
+outputPlot(numEpoch, valAcc, trainAcc, 'Double-Layer-Acc-Plot')
 
 """
 featurizerDefaults = {
@@ -134,3 +159,4 @@ modelInitParams = {
 paramValues = [0.1, 0.01, 0.05]
 ParameterSweep.hyperparameterSweep('stepSize', xTrainRaw, yTrain, modelType=NeuralNetworkFullyConnected, modelInitParams=modelInitParams, featurizerType=BlinkFeaturize.BlinkFeaturize,
                                    featureCreateMethod='CreateFeatureSet', paramValues=paramValues, modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults, xValidateRaw=xValidateRaw, yValidate=yValidate, outputName='mid-5-5-size-double-layer')
+"""

@@ -2,7 +2,12 @@ import MachineLearningCourse.Assignments.Module03.SupportCode.BlinkFeaturize as 
 import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 from MachineLearningCourse.MLUtilities.Learners.ADABoost import AdaBoost
 import MachineLearningCourse.MLProjectSupport.Blink.BlinkDataset as BlinkDataset
-kOutputDirectory = "C:\\temp\\visualize"
+from MachineLearningCourse.MLUtilities.Learners.DecisionTreeWeighted import DecisionTreeWeighted
+import MachineLearningCourse.MLUtilities.Data.CrossValidation as CrossValidation
+import MachineLearningCourse.MLSolution.ParameterSweep as ParameterSweep
+
+
+kOutputDirectory = "./temp/mod3/assignment1"
 
 (xRaw, yRaw) = BlinkDataset.LoadRawData()
 
@@ -18,13 +23,22 @@ print("Test is %d samples %.4f percent opened" %
       (len(yTest), 100.0 * sum(yTest)/len(yTest)))
 
 
-featurizer = BlinkFeaturize.BlinkFeaturize()
+model = AdaBoost()
 
-featurizer.CreateFeatureSet(xTrainRaw, yTrain, includeEdgeFeatures=True)
+featurizerDefaults = {
+    'includeEdgeFeatures': True,
+    'includeSubdividedFeatures': True
+}
 
-xTrain = featurizer.Featurize(xTrainRaw)
-xValidate = featurizer.Featurize(xValidateRaw)
-xTest = featurizer.Featurize(xTestRaw)
 
-for i in range(10):
-    print("%d - " % (yTrain[i]), xTrain[i])
+modelDefaults = {
+    'rounds': 20,
+    'modelParams': {
+        "maxDepth": 5
+    },
+    'modelType': DecisionTreeWeighted
+}
+
+paramValues = [20, 30, 40, 50, 70, 100]
+ParameterSweep.hyperparameterSweep('rounds', xTrainRaw, yTrain, modelType=AdaBoost, featurizerType=BlinkFeaturize.BlinkFeaturize,
+                                   featureCreateMethod='CreateFeatureSet', paramValues=paramValues, modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults, xValidateRaw=xValidateRaw, yValidate=yValidate, outputName='rounds-sweep-assignment-1-depth5-actually-all-features')
