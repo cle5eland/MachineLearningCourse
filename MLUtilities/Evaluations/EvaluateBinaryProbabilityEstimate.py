@@ -23,8 +23,12 @@ def __CheckEvaluationInput(y, yPredicted):
 
 def MeanSquaredErrorLoss(y, yPredicted):
     __CheckEvaluationInput(y, yPredicted)
+    total = 0.0
+    for i in range(len(y)):
+        diff = yPredicted[i] - y[i]
+        total += diff * diff
 
-    print("Stub MeanSquaredErrorLoss in ", __file__)
+    return total/2.0
 
 
 def LogLoss(y, yPredicted):

@@ -56,7 +56,7 @@ def CrossValidation(x, y, numberOfFolds, foldIDToSelect):
     return(xTrain, yTrain, xEvaluate, yEvaluate)
 
 
-def NewExecute(numberOfFolds: int, xTrain: [], yTrain: [], modelType, modelParams: dict, featurizerParams: dict, featurizerType, featureCreateMethod: str, xValidationRaw=None, yValidation=None):
+def NewExecute(numberOfFolds: int, xTrain: [], yTrain: [], modelType, modelParams: dict, modelInitParams: dict, featurizerParams: dict, featurizerType, featureCreateMethod: str, xValidationRaw=None, yValidation=None):
     totalCorrect = 0
     totalTrainCorrect = 0
     for i in range(numberOfFolds):
@@ -71,7 +71,7 @@ def NewExecute(numberOfFolds: int, xTrain: [], yTrain: [], modelType, modelParam
         xTrainFold = featurizer.Featurize(xTrainFold)
         xEvaluate = featurizer.Featurize(xEvaluate)
         # Fit models
-        model = modelType()
+        model = modelType(**modelInitParams)
         model.fit(xTrainFold, yTrainFold, **modelParams)
 
         # Count accurate predictions

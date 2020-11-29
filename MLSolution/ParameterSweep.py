@@ -11,7 +11,7 @@ import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.SMSSpam.SMSSpamDataset as SMSSpamDataset
 
 
-kOutputDirectory = "./temp/mod2/assignment6"
+kOutputDirectory = "./temp/mod3/assignment2"
 
 
 def ExecuteEvaluationRun(runSpecification, xTrainRaw, yTrain, numberOfFolds=5, xValidationRaw=None, yValidation=None):
@@ -35,8 +35,6 @@ def ExecuteEvaluationRun(runSpecification, xTrainRaw, yTrain, numberOfFolds=5, x
     runSpecification['trainAccuracy'] = trainAccuracy
     runSpecification['trainLowerBound'] = lowerBound
     runSpecification['trainUpperBound'] = upperBound
-    print('model spec', modelSpecification)
-    print('accuracy:', accuracy)
     endTime = time.time()
     runSpecification['runtime'] = endTime - startTime
 
@@ -72,12 +70,13 @@ def outputResult(optimizing: str, paramValues: [], evaluations: [], outputName=N
     outputPlot(optimizing, paramValues, evaluations, outputName)
 
 
-def hyperparameterSweep(parameterName: str, xTrainRaw: list, yTrain: list, modelType, featurizerType, featureCreateMethod: str, paramValues: list, modelDefaults: dict, featurizerDefaults: dict, modelParam: bool = True, xValidateRaw=None, yValidate=None, outputName=None):
+def hyperparameterSweep(parameterName: str, xTrainRaw: list, yTrain: list, modelType, modelInitParams: dict, featurizerType, featureCreateMethod: str, paramValues: list, modelDefaults: dict, featurizerDefaults: dict, modelParam: bool = True, xValidateRaw=None, yValidate=None, outputName=None):
     evaluationRunSpecifications = []
     # paramValues = [1]
     # Step Size = 5
     modelSpecification = {}
     modelSpecification['modelType'] = modelType
+    modelSpecification['modelInitParams'] = modelInitParams
     modelSpecification['featurizerType'] = featurizerType
     modelSpecification['featureCreateMethod'] = featureCreateMethod
     for param in paramValues:

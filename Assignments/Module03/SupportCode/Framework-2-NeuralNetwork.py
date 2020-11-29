@@ -4,11 +4,14 @@ from joblib import Parallel, delayed
 import time
 import MachineLearningCourse.MLUtilities.Evaluations.ErrorBounds as ErrorBounds
 import MachineLearningCourse.MLUtilities.Evaluations.EvaluateBinaryClassification as EvaluateBinaryClassification
-import MachineLearningCourse.MLUtilities.Learners.NeuralNetworkFullyConnected as NeuralNetworkFullyConnected
+from MachineLearningCourse.MLUtilities.Learners.NeuralNetworkFullyConnected import NeuralNetworkFullyConnected
 import MachineLearningCourse.Assignments.Module03.SupportCode.BlinkFeaturize as BlinkFeaturize
 import MachineLearningCourse.MLUtilities.Data.Sample as Sample
 import MachineLearningCourse.MLProjectSupport.Blink.BlinkDataset as BlinkDataset
-kOutputDirectory = "C:\\temp\\visualize"
+import MachineLearningCourse.MLUtilities.Data.CrossValidation as CrossValidation
+import MachineLearningCourse.MLSolution.ParameterSweep as ParameterSweep
+
+kOutputDirectory = "./temp/mod3/assignment2"
 
 
 (xRaw, yRaw) = BlinkDataset.LoadRawData()
@@ -33,8 +36,10 @@ featurizer.CreateFeatureSet(xTrainRaw, yTrain, includeEdgeFeatures=False,
                             includeIntensities=True, intensitiesSampleStride=sampleStride)
 
 xTrain = featurizer.Featurize(xTrainRaw)
+"""
 xValidate = featurizer.Featurize(xValidateRaw)
 xTest = featurizer.Featurize(xTestRaw)
+"""
 
 
 def VisualizeWeights(weightArray, outputPath, sampleStride=2):
@@ -74,28 +79,58 @@ def VisualizeWeights(weightArray, outputPath, sampleStride=2):
     image.save(outputPath)
 
 
-hiddenStructure = [2]
-
-model = NeuralNetworkFullyConnected.NeuralNetworkFullyConnected(
-    len(xTrain[0]), hiddenLayersNodeCounts=hiddenStructure)
-
+"""
+weights = model.layers[1].getWeights()
 for filterNumber in range(hiddenStructure[0]):
     # update the first parameter based on your representation
-    VisualizeWeights(model.layers[1][filterNumber], "%s\\filters\\epoch%d_neuron%d.jpg" % (
+    VisualizeWeights(weights[filterNumber], "%s/filters/epoch%d_neuron%d.jpg" % (
         kOutputDirectory, 0, filterNumber), sampleStride=sampleStride)
-
+"""
+"""
 maxEpochs = 1000
-step = 1.0
+step = 0.1
 convergence = 0.1
 
+model.fit(xTrain, yTrain, maxEpochs=1000,
+          stepSize=step, convergence=convergence)"""
+"""
 for i in range(maxEpochs):
     if not model.converged:
         model.incrementalFit(xTrain, yTrain, epochs=1,
-                             step=step, convergence=convergence)
+                             stepSize=step, convergence=convergence)
+        weights = model.layers[1].getWeights()
 
         for filterNumber in range(hiddenStructure[0]):
             # update the first parameter based on your representation
-            VisualizeWeights(model.layers[1][filterNumber], "%s\\filters\\epoch%d_neuron%d.jpg" % (
-                kOutputDirectory, i+1, filterNumber), sampleStride=sampleStride)
+            VisualizeWeights(weights[filterNumber], "%s/filters/epoch%d_neuron%d.jpg" % (
+                kOutputDirectory, i+1, filterNumber), sampleStride=sampleStride)"""
 
-# Evaluate things...
+"""
+yPredicted = model.predict(xValidate)
+correct = CrossValidation.__countCorrect(yValidate, yPredicted)
+accuracy = correct / float(len(yValidate))
+print('ACC:', accuracy)
+
+"""
+featurizerDefaults = {
+    'includeEdgeFeatures': False,
+    'includeIntensities': True,
+    'intensitiesSampleStride': sampleStride
+}
+
+
+modelDefaults = {
+    'maxEpochs': 50000,
+    'stepSize': 0.1,
+    'convergence': 0.0001
+}
+
+hiddenStructure = [5, 5]
+
+modelInitParams = {
+    'numInputFeatures': len(xTrain[0]), 'hiddenLayersNodeCounts': hiddenStructure
+}
+
+paramValues = [0.1, 0.01, 0.05]
+ParameterSweep.hyperparameterSweep('stepSize', xTrainRaw, yTrain, modelType=NeuralNetworkFullyConnected, modelInitParams=modelInitParams, featurizerType=BlinkFeaturize.BlinkFeaturize,
+                                   featureCreateMethod='CreateFeatureSet', paramValues=paramValues, modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults, xValidateRaw=xValidateRaw, yValidate=yValidate, outputName='mid-5-5-size-double-layer')
