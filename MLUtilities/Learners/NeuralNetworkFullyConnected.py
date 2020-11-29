@@ -194,6 +194,7 @@ class NeuralNetworkFullyConnected(object):
             for i in range(len(x)):
                 self.feedForward(x[i])
                 self.backpropagate(y[i])
+                # Mitchell p94 -- for stochastic, update weights after every training sample is processed
                 self.updateweights(stepSize)
 
             if convergence != None:
