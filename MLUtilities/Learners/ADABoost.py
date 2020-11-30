@@ -22,6 +22,7 @@ class AdaBoost(object):
         self.models = []
         self.betas = []
         self.labelDistribution = Counter()
+        self.predictedProbabilities = None
 
     def updateLabelDistribution(self, y):
         for label in y:
@@ -65,11 +66,12 @@ class AdaBoost(object):
             self.models[i].visualize()
 
     def predict(self, x: [[]], classificationThreshold=0.5):
-        print('predicting %s classifications...' % len(x))
         # predictions: [[int]] = [model.predict(x) for model in self.models]
-        predictions = Parallel(n_jobs=12)(delayed(lambda model: model.predict(x))(
-            model) for model in self.models)
-        print('predictions complete.')
+        if (self.predictedProbabilities == None):
+            self.predictedProbabilities = Parallel(n_jobs=4)(delayed(lambda model: model.predictProbabilities(x))(
+                model) for model in self.models)
+        predictions = [[1 if probability >=
+                        classificationThreshold else 0 for probability in self.predictedProbabilities[i]] for i in range(len(self.models))]
         aggregatePrediction = [0.0 for _ in range(len(x))]
         for i in range(len(x)):
             # init results

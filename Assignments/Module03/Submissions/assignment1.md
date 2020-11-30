@@ -1,6 +1,6 @@
 # Assignment 1
 
-## Tuning Hyperparameters on AdaBoost (without new features)
+## Tuning Rounds on AdaBoost (without new features)
 
 `maxDepth = 10`
 
@@ -26,7 +26,11 @@
 | 70     | 0.631461 | 0.626041    | 0.636881    | 28.4864 |
 | 100    | 0.633708 | 0.628295    | 0.639121    | 33.5207 |
 
-## Tuning Hyperparameters on AdaBoost (with new features)
+![](2020-11-29-17-21-26.png)
+
+## Tuning Rounds on AdaBoost (with new features)
+
+`maxDepth = 5`
 
 | rounds | accuracy | lower bound | upper bound | runtime |
 | ------ | -------- | ----------- | ----------- | ------- |
@@ -36,3 +40,22 @@
 | 50     | 0.896629 | 0.893209    | 0.90005     | 155.605 |
 | 70     | 0.901124 | 0.89777     | 0.904477    | 188.172 |
 | 100    | 0.905618 | 0.902333    | 0.908903    | 232.042 |
+
+![](2020-11-29-17-24-34.png)
+
+## ROC
+
+![](2020-11-29-17-10-42.png)
+
+## Analysis
+
+Looking at the original chart of rounds tuning with maxDepth = 10, we can see some overfitting due to the high-variance nature of the underlying Weighted Decision Tree with a large maxDepth. Because of this, I decided to try a lower maxDepth (5) which seemed to suffer from overfitting less.
+
+Looking at the hyperparameter tuning charts above, we can see that, at (at least) 75% one-sided confidence, that, while holding all other hyperparameters constant, including our additional handcrafted features improves the accuracy of the trained ADABoost algorithm. We can also see this reflected in the ROC Curve above--the model trained with the additional handcrafted features completely dominates that trained with only the edge features. My best produced model had hyperparameters as follows:
+
+- `maxDepth = 5`
+- `Rounds = 100`
+- `includeEdgeFeatures = True`
+- `includeSubdividedFeatures = True`
+
+And, the resulting accuracy of this model on the validation data was 0.905618, with a 50% confidence upper bound of 0.908903, and a 50% confidence lower bound of 0.902333.

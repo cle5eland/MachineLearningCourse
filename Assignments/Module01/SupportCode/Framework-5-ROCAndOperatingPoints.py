@@ -108,7 +108,7 @@ seriesLabels.append('ADABoost edge features only')
 # Learn a model with 25 frequent features
 featurizer = BlinkFeaturize.BlinkFeaturize()
 featurizer.CreateFeatureSet(
-    xTrainRaw, yTrain, includeEdgeFeatures=True, includeSubdividedFeatures=False)
+    xTrainRaw, yTrain, includeEdgeFeatures=True, includeSubdividedFeatures=True)
 
 xTrain = featurizer.Featurize(xTrainRaw)
 xValidate = featurizer.Featurize(xValidateRaw)

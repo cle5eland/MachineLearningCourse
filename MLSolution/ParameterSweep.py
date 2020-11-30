@@ -53,6 +53,7 @@ def outputPlot(optimizing: str, paramValues: [], evaluations: [], outputName=Non
     trainSeries = list(
         map(lambda evaluation: evaluation["trainAccuracy"], evaluations))
 
+    print(trainSeries)
     errorBounds = list(map(lambda evaluation:
                            evaluation["upperBound"] - evaluation['accuracy'], evaluations))
     trainErrorBounds = list(map(lambda evaluation:

@@ -41,4 +41,4 @@ modelDefaults = {
 
 paramValues = [20, 30, 40, 50, 70, 100]
 ParameterSweep.hyperparameterSweep('rounds', xTrainRaw, yTrain, modelType=AdaBoost, featurizerType=BlinkFeaturize.BlinkFeaturize,
-                                   featureCreateMethod='CreateFeatureSet', paramValues=paramValues, modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults, xValidateRaw=xValidateRaw, yValidate=yValidate, outputName='rounds-sweep-assignment-1-depth5-actually-all-features')
+                                   featureCreateMethod='CreateFeatureSet', paramValues=paramValues, modelDefaults=modelDefaults, featurizerDefaults=featurizerDefaults, xValidateRaw=xValidateRaw, yValidate=yValidate, outputName='rerun-rounds-sweep-assignment-1-depth5-actually-all-features')
